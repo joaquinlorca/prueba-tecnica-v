@@ -50,11 +50,19 @@ describe('CargasService.crear', () => {
     expect(insertar).not.toHaveBeenCalled();
   });
 
-  it('rechaza más de 500 filas', async () => {
+  it('acepta un CSV de 1.000 filas más el encabezado (1.001 líneas)', async () => {
+    const { servicio, insertar } = crear();
+    insertar.mockResolvedValue(Array.from({ length: 1000 }, (_, i) => i + 1));
+
+    await expect(servicio.crear(csv(1000))).resolves.toEqual({ total: 1000 });
+    expect(insertar).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechaza más de 1.000 filas', async () => {
     const { servicio, insertar } = crear();
 
-    await expect(servicio.crear(csv(501))).rejects.toBeInstanceOf(
-      BadRequestException,
+    await expect(servicio.crear(csv(1001))).rejects.toThrow(
+      'El CSV tiene 1001 filas; el máximo por carga es 1000.',
     );
     expect(insertar).not.toHaveBeenCalled();
   });

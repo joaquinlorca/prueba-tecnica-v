@@ -5,8 +5,9 @@ import type { Industria } from './taxonomia';
 
 // Bajo este n una tasa de cierre no es confiable: la UI la muestra atenuada.
 export const MUESTRA_MINIMA = 30;
-// Con el free tier se analizan ~40-60 filas/min: 500 filas ≈ 10 min de espera.
-export const MAX_FILAS_CARGA = 500;
+// Con el free tier se analizan ~38 filas/min (medido): 1.000 filas ≈ 26 min de espera.
+// No cuenta el encabezado: un CSV de 1.001 líneas tiene 1.000 filas.
+export const MAX_FILAS_CARGA = 1000;
 
 export const AnalizarTranscripcionSchema = z.object({
   transcripcion: z.string().trim().min(50).max(3000),
@@ -122,4 +123,13 @@ export interface EstadoCarga {
   pendientes: number;
   iniciadaEn: string | null;
   etaMin: number | null;
+}
+
+export interface DatosEliminados {
+  eliminadas: {
+    reuniones: number;
+    clientes: number;
+    analisis: number;
+    vendedores: number;
+  };
 }

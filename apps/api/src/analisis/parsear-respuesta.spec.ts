@@ -79,6 +79,34 @@ describe('validarLote', () => {
     expect(validos.get(1)?.analisis.industria).toBe('retail');
   });
 
+  it('con rescatarDolor, un dolor fuera de la taxonomía se guarda como "otro"', () => {
+    const crudo = item(1, { dolor_principal: 'agendamiento' });
+    const { validos, fallidos } = validarLote([crudo], [1], {
+      rescatarDolor: true,
+    });
+    expect(fallidos).toEqual([]);
+    expect(validos.get(1)?.analisis.dolor_principal).toBe('otro');
+    // La respuesta original queda intacta para respuesta_cruda.
+    expect(validos.get(1)?.crudo).toBe(crudo);
+  });
+
+  it('sin rescatarDolor, ese mismo dolor inválido falla', () => {
+    const { fallidos } = validarLote(
+      [item(1, { dolor_principal: 'agendamiento' })],
+      [1],
+    );
+    expect(fallidos).toEqual([1]);
+  });
+
+  it('el rescate solo aplica al dolor: otro campo inválido sigue fallando', () => {
+    const { fallidos } = validarLote(
+      [item(1, { industria: 'mineria', dolor_principal: 'agendamiento' })],
+      [1],
+      { rescatarDolor: true },
+    );
+    expect(fallidos).toEqual([1]);
+  });
+
   it('si la respuesta no es un array, todos fallan', () => {
     const { validos, fallidos } = validarLote({ id: 1 }, [1, 2]);
     expect(validos.size).toBe(0);

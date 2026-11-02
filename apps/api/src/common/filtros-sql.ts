@@ -29,6 +29,9 @@ const escaparLike = (texto: string) =>
 // en el listado y en las métricas.
 export const construirWhere = (filtros: Filtros): SQL | undefined => {
   const busqueda = filtros.q ? `%${escaparLike(filtros.q)}%` : undefined;
+  const cliente = filtros.cliente
+    ? `%${escaparLike(filtros.cliente)}%`
+    : undefined;
 
   return and(
     busqueda
@@ -37,6 +40,9 @@ export const construirWhere = (filtros: Filtros): SQL | undefined => {
           ilike(clientes.email, busqueda),
           ilike(reuniones.transcripcion, busqueda),
         )
+      : undefined,
+    cliente
+      ? or(ilike(clientes.nombre, cliente), ilike(clientes.email, cliente))
       : undefined,
     filtros.closed !== undefined
       ? eq(reuniones.closed, filtros.closed)

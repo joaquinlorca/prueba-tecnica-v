@@ -22,7 +22,15 @@ const normalizarToken = (valor: unknown): unknown =>
         .replace(/\s+/g, '_')
     : valor;
 
-const enumTolerante = <T extends z.ZodEnum>(schema: T) => z.preprocess(normalizarToken, schema);
+// Variantes que Gemma devuelve y que significan lo mismo que un valor de la taxonomía.
+const ALIAS: Record<string, string> = { otros: 'otro' };
+
+const normalizarValor = (valor: unknown): unknown => {
+  const token = normalizarToken(valor);
+  return typeof token === 'string' ? (ALIAS[token] ?? token) : token;
+};
+
+const enumTolerante = <T extends z.ZodEnum>(schema: T) => z.preprocess(normalizarValor, schema);
 
 // En listas, un valor fuera de la taxonomía se descarta en vez de invalidar todo el análisis.
 const listaTolerante = <T extends z.ZodEnum>(schema: T) =>

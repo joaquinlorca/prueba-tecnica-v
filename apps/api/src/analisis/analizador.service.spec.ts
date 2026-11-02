@@ -126,6 +126,28 @@ describe('AnalizadorService.analizarLote', () => {
     expect(fallidos).toEqual([2]);
   });
 
+  it('si el dolor sigue inválido tras los reintentos, se guarda como "otro"', async () => {
+    const llm = new FakeLLM((ids) =>
+      JSON.stringify(
+        ids.map((id) =>
+          id === 2
+            ? { ...item(id), dolor_principal: 'agendamiento' }
+            : item(id),
+        ),
+      ),
+    );
+    const { servicio } = crear(llm);
+
+    const { resultados, fallidos } = await servicio.analizarLote(
+      transcripciones(1, 2, 3),
+    );
+
+    expect(fallidos).toEqual([]);
+    expect(resultados.get(2)?.analisis.dolor_principal).toBe('otro');
+    // Primero se reintentó solo el item 2; el rescate es el último recurso.
+    expect(llm.llamadas).toEqual([[1, 2, 3], [2]]);
+  });
+
   it('ante un 429 espera el retryAfter que indica la API y reintenta', async () => {
     let primera = true;
     const llm = new FakeLLM((ids) => {

@@ -1,5 +1,5 @@
 // test
-import { FiltrosSchema, ListadoSchema } from './filtros';
+import { FiltrosSchema, filtrosAQuery, ListadoSchema } from './filtros';
 
 describe('FiltrosSchema', () => {
   it('sin parámetros no aplica filtros', () => {
@@ -29,6 +29,10 @@ describe('FiltrosSchema', () => {
     expect(FiltrosSchema.parse({ q: '  ', industria: '' })).toEqual({});
   });
 
+  it('acepta la búsqueda por cliente', () => {
+    expect(FiltrosSchema.parse({ cliente: ' Ana ' }).cliente).toBe('Ana');
+  });
+
   it('rechaza una categoría que no existe', () => {
     expect(FiltrosSchema.safeParse({ industria: 'mineria' }).success).toBe(
       false,
@@ -53,5 +57,28 @@ describe('ListadoSchema', () => {
 
   it('rechaza pageSize mayor a 100', () => {
     expect(ListadoSchema.safeParse({ pageSize: '500' }).success).toBe(false);
+  });
+});
+
+describe('filtrosAQuery', () => {
+  it('serializa listas con coma y omite los filtros vacíos', () => {
+    const query = filtrosAQuery({
+      industria: ['salud', 'retail'],
+      closed: false,
+      vendedor: [2],
+      q: undefined,
+    });
+    expect(query).toBe('industria=salud%2Cretail&closed=false&vendedor=2');
+  });
+
+  it('es la inversa de FiltrosSchema', () => {
+    const filtros = FiltrosSchema.parse({
+      q: 'cine',
+      desde: '2024-01-01',
+      dolor: 'equipo_saturado',
+      closed: 'true',
+    });
+    const ida = Object.fromEntries(new URLSearchParams(filtrosAQuery(filtros)));
+    expect(FiltrosSchema.parse(ida)).toEqual(filtros);
   });
 });

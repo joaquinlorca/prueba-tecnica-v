@@ -7,5 +7,6 @@ import { CargasService } from './cargas.service';
   imports: [IngestaModule],
   controllers: [CargasController],
   providers: [CargasService],
+  exports: [CargasService],
 })
 export class CargasModule {}

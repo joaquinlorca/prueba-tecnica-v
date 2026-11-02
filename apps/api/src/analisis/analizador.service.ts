@@ -81,8 +81,13 @@ export class AnalizadorService {
 
     if (fallidos.length === 0) return { resultados: validos, fallidos };
 
-    // Un lote de 1 que falla ya no se puede achicar más.
-    if (items.length === 1) return { resultados: validos, fallidos };
+    // Un lote de 1 que falla ya no se puede achicar más: si el modelo respondió
+    // pero con un dolor inválido, se rescata como "otro".
+    if (items.length === 1) {
+      if (json === undefined) return { resultados: validos, fallidos };
+      const rescate = validarLote(json, ids, { rescatarDolor: true });
+      return { resultados: rescate.validos, fallidos: rescate.fallidos };
+    }
 
     // Falló todo: probablemente el lote confundió al modelo, se prueba por mitades.
     if (fallidos.length === items.length) {

@@ -31,6 +31,14 @@ describe('construirWhere', () => {
     expect(query?.params).toEqual([false, 2]);
   });
 
+  it('la búsqueda por cliente mira solo nombre y email, no la transcripción', () => {
+    const query = renderizar({ cliente: 'ana' });
+    expect(query?.sql).toContain('"clientes"."nombre" ilike');
+    expect(query?.sql).toContain('"clientes"."email" ilike');
+    expect(query?.sql).not.toContain('transcripcion');
+    expect(query?.params).toEqual(['%ana%', '%ana%']);
+  });
+
   it('la búsqueda escapa los comodines de LIKE', () => {
     const query = renderizar({ q: '100%_real' });
     expect(query?.sql).toContain('ilike');
