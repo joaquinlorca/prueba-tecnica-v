@@ -1,1 +1,3 @@
-export const PLACEHOLDER = "shared ok";
+export * from './taxonomia';
+export * from './labels';
+export * from './analisis';
