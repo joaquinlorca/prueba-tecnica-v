@@ -109,6 +109,18 @@ function AnalizarTranscripcion() {
   );
 }
 
+const tituloProgreso = ({ estado, origen }: EstadoCarga) => {
+  const reanudacion = origen === "reanudacion";
+  if (estado === "procesando") {
+    return reanudacion
+      ? "Retomando reuniones pendientes…"
+      : "Analizando con Gemma 4…";
+  }
+  return reanudacion
+    ? "Reuniones pendientes analizadas"
+    : "Última carga terminada";
+};
+
 function SubirCsv() {
   const { mutate } = useSWRConfig();
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -182,7 +194,7 @@ function SubirCsv() {
           <Separator className="my-5" />
           <div className="mb-2 flex justify-between text-sm">
             <span className="font-medium">
-              {procesando ? "Analizando con Gemma 4…" : "Última carga terminada"}
+              {tituloProgreso(carga)}
             </span>
             <span className="tabular-nums text-muted-foreground">
               {numero(procesadas)} / {numero(carga.total)}
@@ -282,7 +294,7 @@ export function VistaProbar() {
     <>
       <Encabezado
         titulo="Probar el modelo"
-        descripcion="Aquí puedes comprobar que la categorización funciona en vivo: con una transcripción suelta o subiendo un CSV con el mismo formato del original. También puedes borrar todos los datos de la base para empezar desde cero."
+        descripcion="Aquí se puede comprobar que la categorización funciona en vivo: con una transcripción suelta o subiendo un CSV con el mismo formato del original. También se puede borrar todos los datos de la base para empezar desde cero."
       />
       <div className="grid grid-cols-2 items-start gap-4">
         <AnalizarTranscripcion />

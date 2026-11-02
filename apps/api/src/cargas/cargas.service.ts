@@ -23,6 +23,7 @@ interface CargaEnCurso {
   desdeId: number;
   hastaId: number;
   iniciadaEn: Date;
+  origen: 'csv' | 'reanudacion';
 }
 
 // Cargas de CSV desde la UI. Se procesan de a una para no competir por la cuota del LLM.
@@ -79,7 +80,7 @@ export class CargasService {
       this.ocupado = false;
       throw error;
     }
-    this.procesar(ids[0], ids[ids.length - 1]);
+    this.procesar(ids[0], ids[ids.length - 1], 'csv');
     return { total: ids.length };
   }
 
@@ -98,7 +99,7 @@ export class CargasService {
       `Retomando reuniones pendientes (${rango.desde}-${rango.hasta})`,
     );
     this.ocupado = true;
-    this.procesar(rango.desde, rango.hasta, ['pendiente']);
+    this.procesar(rango.desde, rango.hasta, 'reanudacion', ['pendiente']);
   }
 
   async estado(): Promise<EstadoCarga> {
@@ -109,12 +110,13 @@ export class CargasService {
         ok: 0,
         error: 0,
         pendientes: 0,
+        origen: null,
         iniciadaEn: null,
         etaMin: null,
       };
     }
 
-    const { desdeId, hastaId, iniciadaEn } = this.actual;
+    const { desdeId, hastaId, iniciadaEn, origen } = this.actual;
     const [conteo] = await this.db
       .select({
         ok: sql<number>`(count(*) filter (where ${reuniones.estadoAnalisis} = 'ok'))::int`,
@@ -132,6 +134,7 @@ export class CargasService {
       estado: this.ocupado ? 'procesando' : 'terminada',
       total: procesadas + conteo.pendientes,
       ...conteo,
+      origen,
       iniciadaEn: iniciadaEn.toISOString(),
       etaMin:
         this.ocupado && porMinuto > 0
@@ -147,9 +150,10 @@ export class CargasService {
   private procesar(
     desdeId: number,
     hastaId: number,
+    origen: CargaEnCurso['origen'],
     estados?: EstadoAnalisis[],
   ) {
-    this.actual = { desdeId, hastaId, iniciadaEn: new Date() };
+    this.actual = { desdeId, hastaId, iniciadaEn: new Date(), origen };
     this.ingesta
       .ejecutar({
         desdeId,

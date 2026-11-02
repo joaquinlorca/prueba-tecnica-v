@@ -9,7 +9,7 @@ import { seedCatalogos } from '../db/seed';
 import { cargarCsvSiVacio } from '../ingesta/cargar-csv';
 import { IngestaService } from '../ingesta/ingesta.service';
 
-// Uso: pnpm --filter api ingesta -- [--filas 1500] [--limit 20] [--batch 15] [--concurrencia 4] [--csv ruta]
+// Uso: pnpm --filter api ingesta [--filas 1500] [--limit 20] [--batch 15] [--concurrencia 4] [--csv ruta]
 // --filas: cuántas filas del CSV cargar (solo si la BD está vacía). --limit: cuántas analizar.
 const CSV_POR_DEFECTO = resolve(
   __dirname,

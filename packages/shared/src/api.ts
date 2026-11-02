@@ -117,6 +117,7 @@ export interface CargaCreada {
 
 export interface EstadoCarga {
   estado: 'sin_cargas' | 'procesando' | 'terminada';
+  origen: 'csv' | 'reanudacion' | null;
   total: number;
   ok: number;
   error: number;
