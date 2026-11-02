@@ -294,7 +294,7 @@ export function VistaProbar() {
     <>
       <Encabezado
         titulo="Probar el modelo"
-        descripcion="Aquí puedes comprobar que la categorización funciona en vivo: con una transcripción suelta o subiendo un CSV con el mismo formato del original. También puedes borrar todos los datos de la base para empezar desde cero."
+        descripcion="Aquí se puede comprobar que la categorización funciona en vivo: con una transcripción suelta o subiendo un CSV con el mismo formato del original. También se puede borrar todos los datos de la base para empezar desde cero."
       />
       <div className="grid grid-cols-2 items-start gap-4">
         <AnalizarTranscripcion />
