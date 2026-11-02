@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AnalisisModule } from './analisis/analisis.module';
 import { CargasModule } from './cargas/cargas.module';
 import { validarEnv } from './config/env';
+import { DatosModule } from './datos/datos.module';
 import { DbModule } from './db/db.module';
 import { HealthController } from './health/health.controller';
 import { IngestaModule } from './ingesta/ingesta.module';
@@ -19,6 +20,7 @@ import { ReunionesModule } from './reuniones/reuniones.module';
     AnalisisModule,
     IngestaModule,
     CargasModule,
+    DatosModule,
     ReunionesModule,
     MetricasModule,
   ],

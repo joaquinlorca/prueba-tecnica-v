@@ -25,13 +25,28 @@ export const extraerJson = (texto: string): unknown => {
   }
 };
 
+// Último recurso cuando el modelo insiste en un dolor fuera de la taxonomía
+// (p. ej. un caso de uso como "agendamiento"): se guarda como "otro" en vez de
+// perder la reunión. La respuesta original queda en `crudo`.
+const conDolorRescatado = (crudo: unknown) =>
+  typeof crudo === 'object' && crudo !== null
+    ? AnalisisLLMItemSchema.safeParse({ ...crudo, dolor_principal: 'otro' })
+    : undefined;
+
 // Valida item por item: un item malo no invalida al resto del lote.
-export const validarLote = (json: unknown, idsEsperados: number[]) => {
+export const validarLote = (
+  json: unknown,
+  idsEsperados: number[],
+  { rescatarDolor = false }: { rescatarDolor?: boolean } = {},
+) => {
   const esperados = new Set(idsEsperados);
   const validos = new Map<number, ResultadoItem>();
 
   for (const crudo of Array.isArray(json) ? json : []) {
-    const resultado = AnalisisLLMItemSchema.safeParse(crudo);
+    let resultado = AnalisisLLMItemSchema.safeParse(crudo);
+    if (!resultado.success && rescatarDolor) {
+      resultado = conDolorRescatado(crudo) ?? resultado;
+    }
     if (!resultado.success) continue;
     const { id } = resultado.data;
     if (!esperados.has(id) || validos.has(id)) continue;

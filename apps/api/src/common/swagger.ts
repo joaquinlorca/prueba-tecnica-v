@@ -28,6 +28,11 @@ export const ApiFiltros = () =>
       description: 'Busca en nombre, email y transcripción',
     }),
     ApiQuery({
+      name: 'cliente',
+      required: false,
+      description: 'Busca solo en nombre y email del cliente',
+    }),
+    ApiQuery({
       name: 'vendedor',
       required: false,
       description: 'Ids de vendedor separados por coma',

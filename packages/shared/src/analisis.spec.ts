@@ -52,6 +52,16 @@ describe('AnalisisLLMItemSchema', () => {
     expect(item.volumen?.periodo).toBe('dia');
   });
 
+  it('acepta "otros" como "otro" (Gemma a veces responde el plural)', () => {
+    const item = AnalisisLLMItemSchema.parse({
+      ...itemValido,
+      industria: 'otros',
+      dolor_principal: 'Otros',
+    });
+    expect(item.industria).toBe('otro');
+    expect(item.dolor_principal).toBe('otro');
+  });
+
   it('falla si una dimensión de valor único trae un valor fuera de la taxonomía', () => {
     const resultado = AnalisisLLMItemSchema.safeParse({
       ...itemValido,

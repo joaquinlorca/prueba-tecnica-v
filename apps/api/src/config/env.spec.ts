@@ -28,7 +28,7 @@ describe('validarEnv', () => {
       validarEnv({
         ...envValido,
         CORS_ORIGIN: 'http://localhost:3000, https://front.example.com',
-      }).CORS_ORIGIN,                                                    // cambiar front.example.com por el de vercel.
+      }).CORS_ORIGIN, // cambiar front.example.com por el de vercel.
     ).toEqual(['http://localhost:3000', 'https://front.example.com']);
   });
 

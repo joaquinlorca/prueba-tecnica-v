@@ -31,6 +31,8 @@ const opcional = <T extends z.ZodType>(schema: T) =>
 
 export const FiltrosSchema = z.object({
   q: opcional(z.string().trim().max(100)),
+  // Solo nombre y email del cliente (q también busca en la transcripción).
+  cliente: opcional(z.string().trim().max(100)),
   vendedor: lista(z.coerce.number().int().positive()),
   desde: opcional(z.iso.date()),
   hasta: opcional(z.iso.date()),
@@ -45,6 +47,18 @@ export const FiltrosSchema = z.object({
   canalAtencion: lista(CanalAtencionSchema),
 });
 export type Filtros = z.infer<typeof FiltrosSchema>;
+
+// Inversa de FiltrosSchema: filtros → query string (listas separadas por coma).
+export const filtrosAQuery = (filtros: Filtros): string => {
+  const params = new URLSearchParams();
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor === undefined || (Array.isArray(valor) && valor.length === 0)) {
+      continue;
+    }
+    params.set(clave, Array.isArray(valor) ? valor.join(',') : String(valor));
+  }
+  return params.toString();
+};
 
 export const OrdenListadoSchema = z.enum(['fecha_desc', 'fecha_asc', 'volumen_desc']);
 export type OrdenListado = z.infer<typeof OrdenListadoSchema>;

@@ -34,6 +34,15 @@ export class CargasService {
   private actual: CargaEnCurso | null = null;
   private ocupado = false;
 
+  get enProceso() {
+    return this.ocupado;
+  }
+
+  // Tras vaciar la base, el progreso de la última carga ya no aplica.
+  olvidarUltimaCarga() {
+    this.actual = null;
+  }
+
   constructor(
     @Inject(DRIZZLE) private readonly db: Db,
     private readonly ingesta: IngestaService,
