@@ -1,0 +1,16 @@
+{
+  "name": "prueba-tecnica-v",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint"
+  },
+  "type": "module",
+  "devDependencies": {
+    "turbo": "^2.11.10",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@12.14.0"
+}
