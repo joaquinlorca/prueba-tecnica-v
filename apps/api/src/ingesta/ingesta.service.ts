@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { asc, inArray, sql } from 'drizzle-orm';
+import type { EstadoAnalisis } from '@vambe/shared';
+import { and, asc, gte, inArray, lte, sql } from 'drizzle-orm';
 import {
   AnalizadorService,
   type ResultadoLote,
@@ -13,6 +14,10 @@ export interface OpcionesIngesta {
   limit?: number;
   batch: number;
   concurrencia: number;
+  estados?: EstadoAnalisis[];
+  // Rango de ids a procesar (una carga desde la UI); sin rango, toda la tabla.
+  desdeId?: number;
+  hastaId?: number;
 }
 
 export interface ResumenIngesta {
@@ -42,12 +47,22 @@ export class IngestaService {
     limit,
     batch,
     concurrencia,
+    estados = ['pendiente', 'error'],
+    desdeId,
+    hastaId,
   }: OpcionesIngesta): Promise<ResumenIngesta> {
+    this.detenida = false;
     const mapa = await this.cargarCategorias();
     const pendientes = await this.db
       .select({ id: reuniones.id })
       .from(reuniones)
-      .where(inArray(reuniones.estadoAnalisis, ['pendiente', 'error']))
+      .where(
+        and(
+          inArray(reuniones.estadoAnalisis, estados),
+          desdeId !== undefined ? gte(reuniones.id, desdeId) : undefined,
+          hastaId !== undefined ? lte(reuniones.id, hastaId) : undefined,
+        ),
+      )
       .orderBy(asc(reuniones.id))
       .limit(limit ?? Number.MAX_SAFE_INTEGER);
 

@@ -46,19 +46,11 @@ export const parsearCsv = (contenido: string): FilaCsv[] => {
 
 const TAMANO_BLOQUE = 500;
 
-// Solo carga si `reuniones` está vacía, así la ingesta se puede relanzar sin duplicar.
+// Inserta clientes y reuniones (estado 'pendiente') en una transacción y
+// devuelve los ids de las reuniones creadas, en orden.
 // Cada fila es un cliente nuevo: nombres y emails repetidos son personas distintas.
-export const cargarCsvSiVacio = async (
-  db: Db,
-  ruta: string,
-  maxFilas?: number,
-) => {
-  const existentes = await db.$count(reuniones);
-  if (existentes > 0) return { cargadas: 0, existentes };
-
-  const filas = parsearCsv(await readFile(ruta, 'utf8')).slice(0, maxFilas);
-
-  await db.transaction(async (tx) => {
+export const insertarFilas = (db: Db, filas: FilaCsv[]) =>
+  db.transaction(async (tx) => {
     const nombres = [...new Set(filas.map((fila) => fila.vendedor))];
     await tx
       .insert(vendedores)
@@ -68,6 +60,7 @@ export const cargarCsvSiVacio = async (
       (await tx.select().from(vendedores)).map((v) => [v.nombre, v.id]),
     );
 
+    const idsReuniones: number[] = [];
     for (const bloque of dividirEnLotes(filas, TAMANO_BLOQUE)) {
       const insertados = await tx
         .insert(clientes)
@@ -83,17 +76,33 @@ export const cargarCsvSiVacio = async (
       // correspondencia con `bloque` aunque RETURNING no garantice el orden.
       const idsClientes = insertados.map(({ id }) => id).sort((a, b) => a - b);
 
-      await tx.insert(reuniones).values(
-        bloque.map((fila, i) => ({
-          clienteId: idsClientes[i],
-          vendedorId: idVendedor.get(fila.vendedor)!,
-          fecha: fila.fecha,
-          closed: fila.closed,
-          transcripcion: fila.transcripcion,
-        })),
-      );
+      const nuevas = await tx
+        .insert(reuniones)
+        .values(
+          bloque.map((fila, i) => ({
+            clienteId: idsClientes[i],
+            vendedorId: idVendedor.get(fila.vendedor)!,
+            fecha: fila.fecha,
+            closed: fila.closed,
+            transcripcion: fila.transcripcion,
+          })),
+        )
+        .returning({ id: reuniones.id });
+      idsReuniones.push(...nuevas.map(({ id }) => id));
     }
+    return idsReuniones.sort((a, b) => a - b);
   });
 
+// Solo carga si `reuniones` está vacía, así la ingesta se puede relanzar sin duplicar.
+export const cargarCsvSiVacio = async (
+  db: Db,
+  ruta: string,
+  maxFilas?: number,
+) => {
+  const existentes = await db.$count(reuniones);
+  if (existentes > 0) return { cargadas: 0, existentes };
+
+  const filas = parsearCsv(await readFile(ruta, 'utf8')).slice(0, maxFilas);
+  await insertarFilas(db, filas);
   return { cargadas: filas.length, existentes: 0 };
 };

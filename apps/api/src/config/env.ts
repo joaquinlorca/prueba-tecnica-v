@@ -11,6 +11,11 @@ export const EnvSchema = z.object({
   INGESTA_BATCH_SIZE: z.coerce.number().int().positive().default(15),
   // Cada lote tarda ~40 s en responder: sin paralelismo no se alcanza el RPM.
   INGESTA_CONCURRENCIA: z.coerce.number().int().positive().default(4),
+  // Orígenes permitidos para el front (localhost y el dominio de Vercel), separados por coma.
+  CORS_ORIGIN: z
+    .string()
+    .default('http://localhost:3000')
+    .transform((valor) => valor.split(',').map((origen) => origen.trim())),
 });
 export type Env = z.infer<typeof EnvSchema>;
 

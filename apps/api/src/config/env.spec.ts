@@ -15,11 +15,21 @@ describe('validarEnv', () => {
       LLM_RPM: 4,
       INGESTA_BATCH_SIZE: 15,
       INGESTA_CONCURRENCIA: 4,
+      CORS_ORIGIN: ['http://localhost:3000'],
     });
   });
 
   it('convierte PORT a número', () => {
     expect(validarEnv({ ...envValido, PORT: '8080' }).PORT).toBe(8080);
+  });
+
+  it('acepta varios orígenes de CORS separados por coma', () => {
+    expect(
+      validarEnv({
+        ...envValido,
+        CORS_ORIGIN: 'http://localhost:3000, https://front.example.com',
+      }).CORS_ORIGIN,                                                    // cambiar front.example.com por el de vercel.
+    ).toEqual(['http://localhost:3000', 'https://front.example.com']);
   });
 
   it('falla si falta DATABASE_URL', () => {

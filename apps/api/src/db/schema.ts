@@ -2,6 +2,7 @@ import type {
   CanalAtencion,
   CasoUso,
   DimensionCategoria,
+  EstadoAnalisis,
   Integracion,
   TamanoEmpresa,
 } from '@vambe/shared';
@@ -20,8 +21,6 @@ import {
 
 // Espejo de supabase/migrations/0001_init.sql, que es la fuente de verdad:
 // índices y checks viven solo allá. Este schema no se usa para generar migraciones.
-
-export type EstadoAnalisis = 'pendiente' | 'ok' | 'error';
 
 export const vendedores = pgTable('vendedores', {
   id: serial('id').primaryKey(),
