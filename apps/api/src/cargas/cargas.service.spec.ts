@@ -16,8 +16,20 @@ const csv = (filas: number) =>
 const crear = () => {
   // La ingesta "nunca termina": simula una carga en proceso.
   const ejecutar = jest.fn(() => new Promise(() => {}));
+  // Responde lo mismo a las dos consultas del servicio: el rango de pendientes
+  // (reanudarPendientes) y el conteo por estado (estado).
+  const db = {
+    select: () => ({
+      from: () => ({
+        where: () =>
+          Promise.resolve([
+            { desde: 841, hasta: 1000, ok: 0, error: 0, pendientes: 3 },
+          ]),
+      }),
+    }),
+  };
   const servicio = new CargasService(
-    {} as Db,
+    db as unknown as Db,
     { ejecutar } as unknown as IngestaService,
     { get: () => 15 } as unknown as ConfigService<Env, true>,
   );
@@ -82,5 +94,24 @@ describe('CargasService.crear', () => {
     await expect(servicio.crear(csv(3))).rejects.toBeInstanceOf(
       ConflictException,
     );
+  });
+});
+
+describe('CargasService.estado: de dónde viene el trabajo', () => {
+  it('sin cargas no hay origen', async () => {
+    const { servicio } = crear();
+    expect((await servicio.estado()).origen).toBeNull();
+  });
+
+  it('una subida de CSV se informa como "csv"', async () => {
+    const { servicio } = crear();
+    await servicio.crear(csv(3));
+    expect((await servicio.estado()).origen).toBe('csv');
+  });
+
+  it('lo retomado al arrancar el servidor se informa como "reanudacion"', async () => {
+    const { servicio } = crear();
+    await servicio.reanudarPendientes();
+    expect((await servicio.estado()).origen).toBe('reanudacion');
   });
 });
