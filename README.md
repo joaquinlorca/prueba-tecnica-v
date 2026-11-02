@@ -17,6 +17,7 @@ Categorización automática de reuniones de venta con un LLM (Gemma 4) y un dash
 
 ## Índice
 
+- [Hallazgos](#hallazgos)
 - [Cómo correrlo en local](#cómo-correrlo-en-local)
 - [Arquitectura](#arquitectura)
    - [Stack](#stack)
@@ -27,6 +28,23 @@ Categorización automática de reuniones de venta con un LLM (Gemma 4) y un dash
    - [3. Salida del LLM robusta](#3-salida-del-llm-robusta)
    - [4. Dashboard](#4-dashboard)
    - [5. Probar el modelo](#5-probar-el-modelo)
+   - [6. Datos: cada fila es un cliente nuevo](#6-datos-cada-fila-es-un-cliente-nuevo)
+   - [7. Se analizó un segmento de 2.000 filas](#7-se-analizó-un-segmento-de-2000-filas)
+- [Calidad de la categorización](#calidad-de-la-categorización)
+
+---
+
+## Hallazgos
+
+Sobre las **2.000 reuniones** cargadas (1.999 analizadas), con una tasa de cierre promedio de **69%**. Solo se comparan segmentos con 30 reuniones o más. Son asociaciones, no causas, pero indican dónde mirar.
+
+1. **El dolor que más cierra es la urgencia.** Los clientes con el equipo saturado cierran **77%** (8 pts sobre el promedio, n=291). Los que quieren crecer sin contratar o recuperar leads perdidos cierran **62%** (7 pts bajo). Para ventas: priorizar a quien ya no da abasto.
+2. **Canales: LinkedIn y recomendaciones rinden más que las redes sociales.** LinkedIn cierra **75%** y las recomendaciones **74%**, contra **64%** de redes sociales y de prensa. Los eventos son el canal con más reuniones (478) y cierran **72%**: volumen con buena conversión.
+3. **El mismo segmento cambia según quién lo atiende.** En retail, Toro cierra **88%** (n=80) y Tiburón **59%** (n=41): 29 puntos de diferencia en la misma industria. En general Toro cierra **76%** y Tiburón **64%**. Asignar los leads de retail a Toro es una ganancia inmediata.
+4. **Industrias:** retail (**76%**) y servicios técnicos (**75%**) son las que más cierran; agro (**58%**) y gastronomía (**63%**), las que menos.
+5. **Lo que piden los que cierran:** quienes necesitan integrar ERP o inventario cierran **76%**, y los que piden soporte postventa **75%**. Los que buscan calificar leads cierran **64%**. Los clientes grandes también cierran más: con más de 10.000 consultas al mes, **76%**; con 500 a 2.000, **67%**.
+
+Todos estos números se pueden explorar y filtrar en el dashboard.
 
 ---
 
@@ -156,3 +174,41 @@ data/            CSV original
 - **Análisis en vivo** de una transcripción (no se guarda).
 - **Subida de CSV** de hasta **1.000 filas** (26 min aprox de análisis con el free tier), con barra de progreso.
 - **Empezar desde cero:** borra reuniones, clientes, vendedores y análisis con un `TRUNCATE` de una lista fija de tablas (sin `CASCADE`); la estructura y la taxonomía no se tocan.
+
+### 6. Datos: cada fila es un cliente nuevo
+El CSV tiene teléfonos repetidos, 312 nombres repetidos y emails que coinciden entre personas distintas, así que no hay un identificador confiable. **Cada fila se trata como un cliente nuevo**: deduplicar por nombre, email o teléfono mezclaría reuniones de clientes diferentes.
+
+### 7. Se analizó un segmento de 2.000 filas
+Con el free tier de Gemini (16k tokens por minuto) se analizan aprox 38 reuniones por minuto: 1.000 filas toman aprox 26 min y las 10.000 tomarían varias horas. Como permite el enunciado, **se analizaron las primeras 2.000 filas**, suficientes para que cada segmento del dashboard tenga una muestra representativa.
+
+---
+
+## Calidad de la categorización
+
+**Revisión de una muestra.** 40 reuniones elegidas al azar (reproducible) se leyeron completas y se compararon con lo que extrajo Gemma. El detalle, fila por fila, está en [`docs/revision-llm.md`](docs/revision-llm.md).
+
+| Dimensión | Aciertos |
+|---|---|
+| Industria | 39 / 40 (97,5%) |
+| Canal de adquisición | 40 / 40 (100%) |
+| Dolor principal | 38 / 40 (95%) |
+| Tamaño de empresa | 30 / 32 con valor (94%); 8 sin dato |
+| Volumen mensual | 40 / 40 (100%) |
+| Integraciones | 37 / 40 (92,5%) |
+
+**Cuánto cae en "otro" o sin dato** (sobre las 1.999 analizadas):
+
+| Dimensión | "Otro" / sin dato |
+|---|---|
+| Industria | 8,1% (161): fábricas y manufactura (47), ONG y fundaciones (31), cine y entretenimiento (24), energía (14) |
+| Canal de adquisición | 2,8% |
+| Dolor principal | 6,3% |
+| Tamaño de empresa | 14,8% sin dato |
+| Volumen mensual | 1% sin dato |
+
+**Reuniones con error:** 1 de 2.000 (0,05%). Además, en 3 reuniones el modelo insistió en un dolor fuera de la taxonomía y se guardó como "otro".
+
+**Qué dice esto:**
+- Industria, canal y volumen son confiables.
+- El "otro" de industria muestra un hueco concreto en la taxonomía: **manufactura, ONG y entretenimiento** serían las próximas categorías a agregar.
+- El dolor es la dimensión más débil: el 64% de las reuniones cae en "consultas repetitivas", porque la mayoría de los clientes no dicen su dolor y el modelo lo infiere. Sirve para comparar segmentos, pero distingue poco entre clientes.
