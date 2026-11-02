@@ -143,8 +143,8 @@ describe('AnalizadorService.analizarLote', () => {
     expect(esperas).toEqual([7000]);
   });
 
-  it('si la API falla en todos los intentos, el lote completo queda fallido', async () => {
-    const llm = new FakeLLM(() => new LLMTransitorioError('503'));
+  it('si la cuota se agota en todos los intentos, el lote completo queda fallido sin dividirse', async () => {
+    const llm = new FakeLLM(() => new LLMRateLimitError('429'));
     const { servicio, esperas } = crear(llm);
 
     const { resultados, fallidos } = await servicio.analizarLote(
@@ -155,6 +155,22 @@ describe('AnalizadorService.analizarLote', () => {
     expect(fallidos).toEqual([1, 2]);
     expect(llm.llamadas).toHaveLength(5);
     expect(esperas).toHaveLength(4);
+  });
+
+  it('si un item provoca 500 persistentes, divide el lote y salva al resto', async () => {
+    const llm = new FakeLLM((ids) =>
+      ids.includes(2)
+        ? new LLMTransitorioError('500')
+        : JSON.stringify(ids.map(item)),
+    );
+    const { servicio } = crear(llm);
+
+    const { resultados, fallidos } = await servicio.analizarLote(
+      transcripciones(1, 2, 3),
+    );
+
+    expect([...resultados.keys()].sort((a, b) => a - b)).toEqual([1, 3]);
+    expect(fallidos).toEqual([2]);
   });
 
   it('propaga errores no recuperables (ej. API key inválida)', async () => {

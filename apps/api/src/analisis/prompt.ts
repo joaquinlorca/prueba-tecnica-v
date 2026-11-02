@@ -11,7 +11,7 @@ import {
 } from '@vambe/shared';
 
 // Se guarda en respuesta_cruda para saber con qué versión se analizó cada reunión.
-export const PROMPT_VERSION = 'v2';
+export const PROMPT_VERSION = 'v3';
 
 export interface TranscripcionAAnalizar {
   id: number;
@@ -80,7 +80,7 @@ Reglas:
 1. Usa EXACTAMENTE los valores en minúscula de las listas. Nunca inventes valores.
 2. dolor_principal: si el cliente no lo dice explícitamente, infiérelo de cómo describe su situación: "constantemente llaman preguntando lo mismo" → consultas_repetitivas; "el equipo no da abasto" → equipo_saturado; "necesitamos atender 24/7, de noche o fines de semana" → atencion_fuera_horario; "estamos creciendo rápido" → crecimiento_sin_contratar; "perdemos clientes por responder tarde" → perdida_ventas_leads. Usa "otro" solo si de verdad ninguno aplica.
 3. tamano_empresa: infiérelo de sucursales, empleados, socios, alumnos o volumen. Un solo local o taller sin más datos → micro. Usa null solo si no hay ninguna pista.
-4. En industria y canal_adquisicion usa "otro" si no hay evidencia clara; en las listas usa [] si no se menciona nada.
+4. Si el rubro no está en la lista (por ejemplo cines, fábricas u ONG), la industria es "otro": nunca inventes una industria nueva. En canal_adquisicion usa "otro" si no hay evidencia clara; en las listas usa [] si no se menciona nada.
 5. volumen es el volumen HABITUAL de consultas. Un rango "entre 800 y 1500" es min 800 y max 1500. Un número aproximado ("unas 400", "más de 400") es min = max = 400. Si solo se menciona un peak puntual (Black Friday, hora punta, consultas por hora), usa null.
 6. Responde SOLO con un array JSON, sin texto adicional: un objeto por transcripción, con su "id" numérico.
 

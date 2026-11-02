@@ -45,6 +45,10 @@ describe('construirPrompt', () => {
     expect(prompt).toMatch(/peak/i);
   });
 
+  it('pide usar "otro" para rubros fuera de la lista en vez de inventar', () => {
+    expect(prompt).toMatch(/no está en la lista.*"otro"/is);
+  });
+
   it('pide inferir el dolor y el tamaño en vez de abusar de "otro" y null', () => {
     expect(prompt).toMatch(/dolor_principal.*infi[eé]r/is);
     expect(prompt).toMatch(/tamano_empresa.*infi[eé]r/is);

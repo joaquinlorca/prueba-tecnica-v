@@ -25,7 +25,14 @@ export interface ResultadoLote {
   fallidos: number[];
 }
 
-class ApiAgotadaError extends Error {}
+class ApiAgotadaError extends Error {
+  constructor(
+    message: string,
+    readonly porCuota: boolean,
+  ) {
+    super(message);
+  }
+}
 
 const combinar = (a: ResultadoLote, b: ResultadoLote): ResultadoLote => ({
   resultados: new Map([...a.resultados, ...b.resultados]),
@@ -57,13 +64,14 @@ export class AnalizadorService {
     try {
       json = await this.pedirJson(items);
     } catch (error) {
-      if (error instanceof ApiAgotadaError) {
-        this.logger.warn(
-          `Lote [${ids.join(',')}] sin respuesta: ${error.message}`,
-        );
-        return { resultados: new Map(), fallidos: ids };
-      }
-      throw error;
+      if (!(error instanceof ApiAgotadaError)) throw error;
+      this.logger.warn(
+        `Lote [${ids.join(',')}] sin respuesta: ${error.message}`,
+      );
+      // Sin cuota, achicar el lote no ayuda. Un 500 persistente sí puede
+      // deberse a un item puntual: se sigue abajo y el lote se divide.
+      if (error.porCuota) return { resultados: new Map(), fallidos: ids };
+      json = undefined;
     }
 
     const { validos, fallidos } =
@@ -121,7 +129,10 @@ export class AnalizadorService {
           error instanceof LLMTransitorioError;
         if (!recuperable) throw error;
         if (intento === MAX_INTENTOS_API) {
-          throw new ApiAgotadaError(error.message);
+          throw new ApiAgotadaError(
+            error.message,
+            error instanceof LLMRateLimitError,
+          );
         }
         const espera =
           (error instanceof LLMRateLimitError
