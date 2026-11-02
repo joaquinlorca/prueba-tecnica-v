@@ -14,6 +14,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "seed": "nest build && node dist/cli/seed.js",
+    "ingesta": "nest build && node dist/cli/ingesta.js",
     "lint": "oxlint --type-aware src/ test/",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --watch",
@@ -22,12 +24,20 @@
     "test:e2e": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@vambe/shared": "workspace:*",
+    "@google/genai": "^2.32.0",
     "@nestjs/common": "^12.0.1",
+    "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/swagger": "^12.1.0",
+    "@nestjs/throttler": "^6.7.1",
+    "@vambe/shared": "workspace:*",
+    "csv-parse": "^7.0.3",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
@@ -36,6 +46,7 @@
     "@nestjs/testing": "^12.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.3.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
     "jest": "^30.0.0",
