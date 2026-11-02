@@ -8,8 +8,14 @@ const envValido = {
 };
 
 describe('validarEnv', () => {
-  it('acepta un env válido y usa 3001 como puerto por defecto', () => {
-    expect(validarEnv(envValido)).toEqual({ ...envValido, PORT: 3001 });
+  it('acepta un env válido y aplica los valores por defecto', () => {
+    expect(validarEnv(envValido)).toEqual({
+      ...envValido,
+      PORT: 3001,
+      LLM_RPM: 4,
+      INGESTA_BATCH_SIZE: 15,
+      INGESTA_CONCURRENCIA: 4,
+    });
   });
 
   it('convierte PORT a número', () => {

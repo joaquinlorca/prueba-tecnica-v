@@ -84,6 +84,19 @@ describe('AnalisisLLMItemSchema', () => {
     expect(resultado.success).toBe(false);
   });
 
+  it('acepta el id como string numérico (Gemma lo devuelve así)', () => {
+    const item = AnalisisLLMItemSchema.parse({ ...itemValido, id: '42' });
+    expect(item.id).toBe(42);
+  });
+
+  it('rechaza un id no numérico', () => {
+    const resultado = AnalisisLLMItemSchema.safeParse({
+      ...itemValido,
+      id: 'abc',
+    });
+    expect(resultado.success).toBe(false);
+  });
+
   it('acepta tamaño y volumen nulos', () => {
     const resultado = AnalisisLLMItemSchema.safeParse({
       ...itemValido,

@@ -44,7 +44,7 @@ export type VolumenLLM = z.output<typeof VolumenLLMSchema>;
 
 // Lo que devuelve el LLM por cada transcripción.
 export const AnalisisLLMItemSchema = z.object({
-  id: z.number().int(),
+  id: z.coerce.number().int(),
   industria: enumTolerante(IndustriaSchema),
   canal_adquisicion: enumTolerante(CanalAdquisicionSchema),
   dolor_principal: enumTolerante(DolorPrincipalSchema),
